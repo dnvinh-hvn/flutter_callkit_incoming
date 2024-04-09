@@ -44,9 +44,23 @@ class FlutterCallkitIncomingPlugin : FlutterPlugin, MethodCallHandler, ActivityA
         private val eventChannels = mutableMapOf<BinaryMessenger, EventChannel>()
         private val eventHandlers = mutableListOf<WeakReference<EventCallbackHandler>>()
 
+        private val eventCallbacks = mutableListOf<com.hiennv.flutter_callkit_incoming.EventCallbackHandler>()
+
+        public fun addEventCallback(callback: com.hiennv.flutter_callkit_incoming.EventCallbackHandler) {
+            eventCallbacks.add(callback)
+        }
+
+        public fun removeEventCallback(callback: com.hiennv.flutter_callkit_incoming.EventCallbackHandler) {
+            eventCallbacks.remove(callback)
+        }
+
         fun sendEvent(event: String, body: Map<String, Any>) {
             eventHandlers.reapCollection().forEach {
                 it.get()?.send(event, body)
+            }
+
+            eventCallbacks.forEach {
+                it.onEventSend(event, body)
             }
         }
 
@@ -406,4 +420,10 @@ class FlutterCallkitIncomingPlugin : FlutterPlugin, MethodCallHandler, ActivityA
     }
 
 
+
+}
+
+
+interface EventCallbackHandler {
+    fun onEventSend(event: String, body: Map<String, Any>)
 }
